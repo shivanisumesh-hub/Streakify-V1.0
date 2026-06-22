@@ -105,4 +105,38 @@ def test_streak_and_dashboard_calculations_api():
 
     dash_res = client.get(f"/users/{user_id}/dashboard")
     assert dash_res.status_code == 200
-    assert dash_res.json()["total_habits"] == 1
+    dashboard = dash_res.json()
+    assert dashboard["totalHabits"] == 1
+    assert dashboard["activeHabits"] == 1
+    assert dashboard["completedToday"] == 1
+    assert dashboard["currentStreaks"][0]["habitName"] == "Running"
+    assert dashboard["currentStreaks"][0]["currentStreak"] == 1
+    assert dashboard["currentStreaks"][0]["longestStreak"] == 1
+
+
+def test_calendar_gaps_break_streaks_api():
+    """Validates multi-day logging and streak reset when a calendar day is missed."""
+    u_res = client.post("/users", json={"name": "Eli", "email": "eli@test.com"})
+    user_id = u_res.json()["id"]
+    h_res = client.post("/habits", json={"name": "Read", "target_days_per_week": 5, "user_id": user_id})
+    habit_id = h_res.json()["id"]
+
+    four_days_ago = (date.today() - timedelta(days=4)).strftime("%Y-%m-%d")
+    three_days_ago = (date.today() - timedelta(days=3)).strftime("%Y-%m-%d")
+    yesterday = (date.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+    today = date.today().strftime("%Y-%m-%d")
+
+    assert client.post(f"/habits/{habit_id}/logs", json={"log_date": four_days_ago, "completed": True}).status_code == 201
+    assert client.post(f"/habits/{habit_id}/logs", json={"log_date": three_days_ago, "completed": True}).status_code == 201
+    assert client.post(f"/habits/{habit_id}/logs", json={"log_date": yesterday, "completed": True}).status_code == 201
+    assert client.post(f"/habits/{habit_id}/logs", json={"log_date": today, "completed": True}).status_code == 201
+
+    streak_res = client.get(f"/habits/{habit_id}/streak")
+    assert streak_res.status_code == 200
+    streak = streak_res.json()
+    assert streak["current_streak"] == 2
+    assert streak["max_streak"] == 2
+
+    dup_res = client.post(f"/habits/{habit_id}/logs", json={"log_date": yesterday, "completed": True})
+    assert dup_res.status_code == 400
+    assert dup_res.json()["detail"] == "Habit already logged for this date"

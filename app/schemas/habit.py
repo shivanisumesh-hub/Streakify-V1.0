@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import date
+from datetime import datetime
 
 class HabitCreate(BaseModel):
     name: str
@@ -11,7 +11,7 @@ class HabitResponse(BaseModel):
     name: str
     target_days_per_week: int
     user_id: int
-    created_at: date
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -1,9 +1,10 @@
-from pydantic import BaseModel
 from datetime import date
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
 
 class HabitLogCreate(BaseModel):
     completed: bool = True
+    log_date: Optional[date] = None
 
 class HabitLogUpdate(BaseModel):
     completed: bool
@@ -23,14 +24,13 @@ class StreakResponse(BaseModel):
     max_streak: int
 
 class HabitSummary(BaseModel):
-    id: int
-    name: str
-    current_streak: int
-    completion_rate: float
+    habitName: str
+    currentStreak: int
+    longestStreak: int
 
 class DashboardResponse(BaseModel):
-    user_id: int
-    total_habits: int
-    completed_today: int
-    consistency_score: float
-    habits_summary: List[HabitSummary]
+    totalHabits: int
+    activeHabits: int
+    completedToday: int
+    currentStreaks: List[HabitSummary]
+    consistencyScore: float

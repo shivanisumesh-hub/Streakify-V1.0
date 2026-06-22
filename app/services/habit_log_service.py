@@ -11,11 +11,15 @@ class HabitLogService:
         if not crud_habit.get_habit_by_id(db, habit_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
         
-        today = date.today()
-        if crud_log.get_log_by_date(db, habit_id, today):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Habit already logged for today")
+        target_date = payload.log_date or date.today()
+        if target_date > date.today():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot log habits for a future date")
+
+        if crud_log.get_log_by_date(db, habit_id, target_date):
+            detail = "Habit already logged for today" if target_date == date.today() else "Habit already logged for this date"
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
             
-        return crud_log.create_log(db, habit_id, today, payload.completed)
+        return crud_log.create_log(db, habit_id, target_date, payload.completed)
 
     @staticmethod
     def update_log(db: Session, habit_id: int, date_str: str, payload: HabitLogUpdate):
