@@ -1,8 +1,8 @@
 # Streakify V1.0 MVP Backend
 
-Streakify is a habit tracking backend built for the Litmus7 Microservices Internship Assignment. It helps users create habits, log daily progress, calculate streaks, and view productivity dashboard insights.
+Streakify is a backend API for tracking habits, daily progress, streaks, and productivity insights. It is designed as an MVP for a habit-building product where users can register, create habits, log completions, monitor streak momentum, and review performance analytics.
 
-The backend is built with FastAPI, SQLAlchemy, and PostgreSQL.
+The backend is built with FastAPI, SQLAlchemy, and PostgreSQL, with a clean layered structure that makes the codebase easy to test and extend.
 
 ## Features
 
@@ -14,6 +14,16 @@ The backend is built with FastAPI, SQLAlchemy, and PostgreSQL.
 - Calendar-aware current and longest streak calculation
 - Productivity dashboard with habit streak summaries
 - Layered architecture with routers, services, CRUD, schemas, and models
+
+## Business Rules
+
+- A user can create multiple habits.
+- Each habit belongs to one user.
+- A habit log belongs to one habit.
+- A habit can be logged only once per calendar date.
+- Future dates cannot be logged.
+- Missing calendar days break the current streak.
+- The longest streak is preserved even after a streak is broken.
 
 ## Tech Stack
 
@@ -64,6 +74,24 @@ Initialize the schema:
 ```bash
 psql -d streakifyv1_db -f schema.sql
 ```
+
+## Database Tables
+
+The PostgreSQL schema contains three main tables:
+
+| Table | Purpose |
+| --- | --- |
+| `users` | Stores user profile details |
+| `habits` | Stores user-created habits and target frequency |
+| `habit_logs` | Stores daily completion status for each habit |
+
+Important constraints and indexes:
+
+- `users.email` is unique.
+- `habits.user_id` references `users.id`.
+- `habit_logs.habit_id` references `habits.id`.
+- `(habit_id, log_date)` is unique to prevent duplicate logs.
+- Indexes are included for email lookup, user habits, and habit log date queries.
 
 ## Setup
 
@@ -257,6 +285,19 @@ Sample response:
 - Duplicate habit log for the same date returns `400`.
 - Future date logging returns `400`.
 - Invalid date format for log update returns `400`.
+
+## Testing
+
+The automated tests cover:
+
+- User lifecycle
+- Habit lifecycle
+- Duplicate user validation
+- Duplicate habit log validation
+- Future-date log validation
+- Multi-day habit logging
+- Calendar gap streak reset
+- Dashboard response data
 
 ## Postman Testing Checklist
 
