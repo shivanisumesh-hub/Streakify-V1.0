@@ -1,65 +1,24 @@
-from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from app.crud import user as crud_user
+from app.schemas.user import UserCreate
 
-from app.crud.user import (
-    create_user,
-    get_user,
-    delete_user,
-    get_user_by_email
-)
+class UserService:
+    @staticmethod
+    def create_user(db: Session, user_data: UserCreate):
+        if crud_user.get_user_by_email(db, user_data.email):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        return crud_user.create_user(db, user_data)
 
+    @staticmethod
+    def get_user(db: Session, user_id: int):
+        user = crud_user.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        return user
 
-def create_user_service(db, user):
-
-    existing_user = get_user_by_email(
-        db,
-        user.email
-    )
-
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="Email already exists"
-        )
-
-    return create_user(
-        db,
-        user
-    )
-
-
-def get_user_service(
-    db,
-    user_id
-):
-    user = get_user(
-        db,
-        user_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    return user
-
-
-def delete_user_service(
-    db,
-    user_id
-):
-    user = delete_user(
-        db,
-        user_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    return {
-        "message": "User deleted successfully"
-    }
+    @staticmethod
+    def delete_user(db: Session, user_id: int):
+        user = UserService.get_user(db, user_id)
+        crud_user.delete_user(db, user)
+        return {"message": f"User {user_id} and all related data successfully deleted"}

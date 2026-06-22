@@ -1,18 +1,15 @@
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
-
+from datetime import date
 
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
 
-
 class UserResponse(BaseModel):
     id: int
     name: str
-    email: EmailStr
-    created_at: datetime
+    email: str
+    created_at: date
 
-    model_config = {
-        "from_attributes": True
-    }
+    class Config:
+        from_attributes = True

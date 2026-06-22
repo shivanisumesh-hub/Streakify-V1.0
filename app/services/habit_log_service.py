@@ -1,84 +1,43 @@
-from datetime import date
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from datetime import date, datetime
+from app.crud import habit as crud_habit
+from app.crud import habit_log as crud_log
+from app.schemas.habit_log import HabitLogCreate, HabitLogUpdate
 
-from fastapi import HTTPException
+class HabitLogService:
+    @staticmethod
+    def create_log(db: Session, habit_id: int, payload: HabitLogCreate):
+        if not crud_habit.get_habit_by_id(db, habit_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
+        
+        today = date.today()
+        if crud_log.get_log_by_date(db, habit_id, today):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Habit already logged for today")
+            
+        return crud_log.create_log(db, habit_id, today, payload.completed)
 
-from app.crud.habit import get_habit
-from app.crud.habit_log import (
-    create_log,
-    update_log,
-    get_habit_logs,
-    get_log_by_date
-)
+    @staticmethod
+    def update_log(db: Session, habit_id: int, date_str: str, payload: HabitLogUpdate):
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid date format. Use YYYY-MM-DD")
+            
+        if target_date > date.today():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot log habits for a future date")
+            
+        db_log = crud_log.get_log_by_date(db, habit_id, target_date)
+        if not db_log:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log entry not found")
+            
+        db_log.completed = payload.completed
+        db.commit()
+        db.refresh(db_log)
+        return db_log
 
-
-def create_habit_log_service(
-    db,
-    habit_id,
-    log
-):
-    habit = get_habit(
-        db,
-        habit_id
-    )
-
-    if not habit:
-        raise HTTPException(
-            status_code=404,
-            detail="Habit not found"
-        )
-
-    if log.log_date > date.today():
-        raise HTTPException(
-            status_code=400,
-            detail="Future dates not allowed"
-        )
-
-    existing_log = get_log_by_date(
-        db,
-        habit_id,
-        log.log_date
-    )
-
-    if existing_log:
-        raise HTTPException(
-            status_code=400,
-            detail="Log already exists"
-        )
-
-    return create_log(
-        db,
-        habit_id,
-        log
-    )
-
-
-def update_habit_log_service(
-    db,
-    habit_id,
-    log_date,
-    completed
-):
-    log = update_log(
-        db,
-        habit_id,
-        log_date,
-        completed
-    )
-
-    if not log:
-        raise HTTPException(
-            status_code=404,
-            detail="Log not found"
-        )
-
-    return log
-
-
-def get_logs_service(
-    db,
-    habit_id
-):
-    return get_habit_logs(
-        db,
-        habit_id
-    )
+    @staticmethod
+    def get_logs(db: Session, habit_id: int):
+        if not crud_habit.get_habit_by_id(db, habit_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
+        return crud_log.get_habit_logs_sorted(db, habit_id)

@@ -1,30 +1,25 @@
-from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status
+from app.crud import habit as crud_habit
+from app.crud import streak as crud_streak
 
-from app.crud.habit import get_habit
-from app.crud.habit_log import get_habit_logs
-from app.crud.streak import calculate_streak
-
-
-def get_streak_service(
-    db,
-    habit_id
-):
-    habit = get_habit(
-        db,
-        habit_id
-    )
-
-    if not habit:
-        raise HTTPException(
-            status_code=404,
-            detail="Habit not found"
-        )
-
-    logs = get_habit_logs(
-        db,
-        habit_id
-    )
-
-    return calculate_streak(
-        logs
-    )
+class StreakService:
+    @staticmethod
+    def calculate_streak(db: Session, habit_id: int):
+        if not crud_habit.get_habit_by_id(db, habit_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Habit not found")
+            
+        logs = crud_streak.get_all_logs_for_streak(db, habit_id)
+        current_streak, max_streak, running_streak = 0, 0, 0
+        
+        for log in logs:
+            if log.completed:
+                running_streak += 1
+                max_streak = max(max_streak, running_streak)
+            else:
+                running_streak = 0
+                
+        if logs and logs[-1].completed:
+            current_streak = running_streak
+            
+        return {"habit_id": habit_id, "current_streak": current_streak, "max_streak": max_streak}

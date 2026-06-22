@@ -1,78 +1,56 @@
+from sqlalchemy.orm import Session
 from datetime import date
+from app.services.user_service import UserService
+from app.crud import habit as crud_habit
+from app.crud import habit_log as crud_log
 
-from fastapi import HTTPException
-
-from app.crud.user import get_user
-from app.crud.habit import get_user_habits
-from app.crud.habit_log import get_habit_logs
-from app.crud.streak import calculate_streak
-
-
-def get_dashboard_service(
-    db,
-    user_id
-):
-    user = get_user(
-        db,
-        user_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    habits = get_user_habits(
-        db,
-        user_id
-    )
-
-    total_habits = len(habits)
-
-    completed_today = 0
-
-    streaks = []
-
-    for habit in habits:
-
-        logs = get_habit_logs(
-            db,
-            habit.id
-        )
-
-        if any(
-            log.log_date == date.today()
-            and log.completed
-            for log in logs
-        ):
-            completed_today += 1
-
-        streak = calculate_streak(
-            logs
-        )
-
-        streaks.append(
-            {
-                "habitId": habit.id,
-                "habitName": habit.name,
-                "currentStreak": streak["current_streak"],
-                "longestStreak": streak["longest_streak"]
-            }
-        )
-
-    consistency_score = 0
-
-    if total_habits > 0:
-        consistency_score = round(
-            (completed_today / total_habits) * 100,
-            2
-        )
-
-    return {
-        "totalHabits": total_habits,
-        "activeHabits": total_habits,
-        "completedToday": completed_today,
-        "currentStreaks": streaks,
-        "consistencyScore": consistency_score
-    }
+class DashboardService:
+    @staticmethod
+    def generate_dashboard(db: Session, user_id: int):
+        UserService.get_user(db, user_id)
+        habits = crud_habit.get_user_habits(db, user_id)
+        
+        total_habits = len(habits)
+        completed_today = 0
+        total_logs_across_all = 0
+        total_completions_across_all = 0
+        summaries = []
+        today = date.today()
+        
+        for h in habits:
+            logs = crud_log.get_habit_logs_sorted(db, habit_id=h.id)
+            total_logs = len(logs)
+            completed_logs = sum(1 for log in logs if log.completed)
+            
+            total_logs_across_all += total_logs
+            total_completions_across_all += completed_logs
+            
+            # Check if logged completed today
+            if crud_log.get_log_by_date(db, h.id, today) and crud_log.get_log_by_date(db, h.id, today).completed:
+                completed_today += 1
+                
+            rate = (completed_logs / total_logs * 100.0) if total_logs > 0 else 0.0
+            
+            current_streak = 0
+            for log in reversed(logs):
+                if log.completed:
+                    current_streak += 1
+                else:
+                    break
+                    
+            summaries.append({
+                "id": h.id,
+                "name": h.name,
+                "current_streak": current_streak,
+                "completion_rate": round(rate, 2)
+            })
+            
+        consistency = (total_completions_across_all / total_logs_across_all * 100.0) if total_logs_across_all > 0 else 0.0
+        
+        return {
+            "user_id": user_id,
+            "total_habits": total_habits,
+            "completed_today": completed_today,
+            "consistency_score": round(consistency, 2),
+            "habits_summary": summaries
+        }

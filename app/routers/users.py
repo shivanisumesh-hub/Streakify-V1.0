@@ -1,75 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-
+from app.schemas.user import UserCreate, UserResponse
+from app.services.user_service import UserService
 from app.config import get_db
-from app.crud.user import (
-    create_user,
-    get_user,
-    get_user_by_email,
-    delete_user
-)
-from app.schemas.user import (
-    UserCreate,
-    UserResponse
-)
 
-router = APIRouter(
-    prefix="/users",
-    tags=["Users"]
-)
+router = APIRouter(prefix="/users", tags=["Users"])
 
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    return UserService.create_user(db, user)
 
-@router.post("/", response_model=UserResponse)
-def create_new_user(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
-    existing_user = get_user_by_email(
-        db,
-        user.email
-    )
+@router.get("/{id}", response_model=UserResponse)
+def get_user(id: int, db: Session = Depends(get_db)):
+    return UserService.get_user(db, id)
 
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="Email already exists"
-        )
-
-    return create_user(db, user)
-
-
-@router.get("/{user_id}", response_model=UserResponse)
-def get_user_details(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    user = get_user(db, user_id)
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    return user
-
-
-@router.delete("/{user_id}")
-def remove_user(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    user = delete_user(
-        db,
-        user_id
-    )
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found"
-        )
-
-    return {
-        "message": "User deleted successfully"
-    }
+@router.delete("/{id}")
+def delete_user(id: int, db: Session = Depends(get_db)):
+    return UserService.delete_user(db, id)
