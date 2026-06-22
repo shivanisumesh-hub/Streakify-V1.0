@@ -1,29 +1,63 @@
-# Streakify V1.0 MVP Backend
+# Streakify - Habit Tracking API
 
-Streakify is a backend API for tracking habits, daily progress, streaks, and productivity insights. It is designed as an MVP for a habit-building product where users can register, create habits, log completions, monitor streak momentum, and review performance analytics.
+## Overview
 
-The backend is built with FastAPI, SQLAlchemy, and PostgreSQL, with a clean layered structure that makes the codebase easy to test and extend.
+Streakify is a backend habit tracking application designed to help users build consistent habits and improve productivity by maintaining daily streaks. The system allows users to create habits, log daily progress, track current and longest streaks, and view productivity insights through a dashboard API.
+
+The application provides a structured backend using FastAPI, SQLAlchemy, and PostgreSQL. It follows a layered architecture to keep routing, business logic, validation, and database operations cleanly separated.
+
+---
 
 ## Features
 
-- User registration, profile lookup, and account deletion
-- Habit creation, listing, and deletion
-- Daily habit logging with duplicate prevention
-- Historical habit logging by date
-- Future-date log validation
-- Calendar-aware current and longest streak calculation
-- Productivity dashboard with habit streak summaries
-- Layered architecture with routers, services, CRUD, schemas, and models
+- User Management
+  - Create, fetch, and delete users
+  - Unique email validation
+  - Invalid email validation
 
-## Business Rules
+- Habit Management
+  - Create and delete habits
+  - Set target days per week
+  - View all habits for a user
 
-- A user can create multiple habits.
-- Each habit belongs to one user.
-- A habit log belongs to one habit.
-- A habit can be logged only once per calendar date.
-- Future dates cannot be logged.
-- Missing calendar days break the current streak.
-- The longest streak is preserved even after a streak is broken.
+- Habit Tracking
+  - Log daily habit completion
+  - Log progress for a specific date
+  - Edit existing habit logs
+  - Prevent duplicate entries for the same habit and date
+  - Prevent future date entries
+
+- Streak Calculation
+  - Tracks current streak
+  - Calculates longest streak
+  - Breaks streaks when calendar days are missed
+
+- Dashboard
+  - Shows total habits
+  - Shows completed habits for today
+  - Displays current and longest streak summaries
+  - Calculates consistency score
+
+- Validation & Error Handling
+  - Field validation for request bodies
+  - Custom exception handling for:
+    - Duplicate email
+    - Duplicate habit logs
+    - Resource not found
+    - Invalid dates
+    - Future date logging
+
+- RESTful API Design
+  - Clean and structured endpoints
+  - Proper HTTP methods: GET, POST, PUT, DELETE
+  - JSON request and response bodies
+
+- Layered Architecture
+  - Router -> Service -> CRUD separation
+  - SQLAlchemy models for database mapping
+  - Pydantic schemas for validation and serialization
+
+---
 
 ## Tech Stack
 
@@ -31,149 +65,215 @@ The backend is built with FastAPI, SQLAlchemy, and PostgreSQL, with a clean laye
 - FastAPI
 - SQLAlchemy
 - PostgreSQL
+- Pydantic
 - Pytest
+- Postman
 
-## Project Structure
+---
 
-```text
-app/
-  crud/          Database access functions
-  models/        SQLAlchemy database models
-  routers/       FastAPI route definitions
-  schemas/       Pydantic request and response models
-  services/      Business logic
-  config.py      Database configuration
-  main.py        FastAPI application entry point
-tests/
-  test_main.py   API test coverage
-schema.sql       PostgreSQL schema initialization script
+## Setup Steps
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/shivanisumesh-hub/Streakify-V1.0.git
+cd Streakify-V1.0
 ```
 
-## Database Configuration
+### 2. Create PostgreSQL Database
 
-This project is configured to use the local PostgreSQL database:
+Create a database named:
 
 ```text
 streakifyv1_db
 ```
 
-The connection string is defined in `app/config.py`:
-
-```python
-postgresql://apple@localhost:5432/streakifyv1_db
-```
-
-Create the database:
+Example command:
 
 ```bash
 createdb streakifyv1_db
 ```
 
-Initialize the schema:
+### 3. Initialize Database Schema
+
+Run the schema file:
 
 ```bash
 psql -d streakifyv1_db -f schema.sql
 ```
 
-## Database Tables
-
-The PostgreSQL schema contains three main tables:
-
-| Table | Purpose |
-| --- | --- |
-| `users` | Stores user profile details |
-| `habits` | Stores user-created habits and target frequency |
-| `habit_logs` | Stores daily completion status for each habit |
-
-Important constraints and indexes:
-
-- `users.email` is unique.
-- `habits.user_id` references `users.id`.
-- `habit_logs.habit_id` references `habits.id`.
-- `(habit_id, log_date)` is unique to prevent duplicate logs.
-- Indexes are included for email lookup, user habits, and habit log date queries.
-
-## Setup
-
-Create and activate a virtual environment:
+### 4. Create Virtual Environment
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-Install dependencies:
+### 5. Install Dependencies
 
 ```bash
 pip install fastapi uvicorn sqlalchemy psycopg2-binary "pydantic[email]" pytest
 ```
 
-Run the API:
+### 6. Configure Database
+
+The database connection is configured in `app/config.py`:
+
+```python
+postgresql://apple@localhost:5432/streakifyv1_db
+```
+
+Update this connection string if your PostgreSQL username, password, host, port, or database name is different.
+
+### 7. Run the Application
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open the API docs:
+Server runs on:
+
+```text
+http://127.0.0.1:8000
+```
+
+Interactive API docs:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-## Run Tests
+---
 
-```bash
-venv/bin/python -m pytest -q
+## Database Schema
+
+### users
+
+| Column | Type |
+| --- | --- |
+| id | SERIAL PRIMARY KEY |
+| name | VARCHAR(100) NOT NULL |
+| email | VARCHAR(255) UNIQUE NOT NULL |
+| created_at | TIMESTAMP WITH TIME ZONE |
+
+---
+
+### habits
+
+| Column | Type |
+| --- | --- |
+| id | SERIAL PRIMARY KEY |
+| name | VARCHAR(150) NOT NULL |
+| target_days_per_week | INT CHECK BETWEEN 1 AND 7 |
+| user_id | INT FOREIGN KEY -> users.id |
+| created_at | TIMESTAMP WITH TIME ZONE |
+
+---
+
+### habit_logs
+
+| Column | Type |
+| --- | --- |
+| id | SERIAL PRIMARY KEY |
+| habit_id | INT FOREIGN KEY -> habits.id |
+| log_date | DATE |
+| completed | BOOLEAN |
+
+Constraints and indexes:
+
+- Unique constraint on `(habit_id, log_date)`
+- Index on `users.email`
+- Index on `habits.user_id`
+- Index on `(habit_id, log_date)`
+- Cascade delete from users to habits
+- Cascade delete from habits to habit logs
+
+---
+
+## Project Structure
+
+```text
+streakify/
+|-- app/
+|   |-- crud/
+|   |   |-- habit.py
+|   |   |-- habit_log.py
+|   |   |-- streak.py
+|   |   |-- user.py
+|   |
+|   |-- models/
+|   |   |-- habit.py
+|   |   |-- habit_log.py
+|   |   |-- user.py
+|   |
+|   |-- routers/
+|   |   |-- dashboards.py
+|   |   |-- habit_logs.py
+|   |   |-- habits.py
+|   |   |-- streaks.py
+|   |   |-- users.py
+|   |
+|   |-- schemas/
+|   |   |-- habit.py
+|   |   |-- habit_log.py
+|   |   |-- user.py
+|   |
+|   |-- services/
+|   |   |-- dashboard_service.py
+|   |   |-- habit_log_service.py
+|   |   |-- habit_service.py
+|   |   |-- streak_service.py
+|   |   |-- user_service.py
+|   |
+|   |-- config.py
+|   |-- main.py
+|
+|-- tests/
+|   |-- test_main.py
+|
+|-- schema.sql
+|-- README.md
 ```
 
-The test suite uses an in-memory SQLite database so tests can run without modifying the local PostgreSQL database.
+---
 
 ## API Endpoints
 
-### Users
+### User APIs
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/users` | Register a user |
-| GET | `/users/{id}` | View user profile |
-| DELETE | `/users/{id}` | Delete user and related data |
+- POST `/users`
+- GET `/users/{id}`
+- DELETE `/users/{id}`
 
-### Habits
+### Habit APIs
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/habits` | Create a habit |
-| GET | `/users/{userId}/habits` | View all habits for a user |
-| DELETE | `/habits/{id}` | Delete a habit |
+- POST `/habits`
+- GET `/users/{userId}/habits`
+- DELETE `/habits/{id}`
 
-### Habit Logs
+### Habit Log APIs
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| POST | `/habits/{habitId}/logs` | Log progress for today or a specific date |
-| PUT | `/habits/{habitId}/logs/{date}` | Edit an existing log |
-| GET | `/habits/{habitId}/logs` | View habit logs |
+- POST `/habits/{habitId}/logs`
+- PUT `/habits/{habitId}/logs/{date}`
+- GET `/habits/{habitId}/logs`
 
-### Streaks
+### Streak API
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/habits/{habitId}/streak` | Get current and longest streak |
+- GET `/habits/{habitId}/streak`
 
-### Dashboard
+### Dashboard API
 
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| GET | `/users/{userId}/dashboard` | Get productivity dashboard |
+- GET `/users/{userId}/dashboard`
 
-## Sample Requests
+---
+
+## Sample API
 
 ### Create User
 
-```http
-POST /users
-Content-Type: application/json
-```
+POST `/users`
+
+Request:
 
 ```json
 {
@@ -182,7 +282,7 @@ Content-Type: application/json
 }
 ```
 
-Sample response:
+Response:
 
 ```json
 {
@@ -195,10 +295,9 @@ Sample response:
 
 ### Create Habit
 
-```http
-POST /habits
-Content-Type: application/json
-```
+POST `/habits`
+
+Request:
 
 ```json
 {
@@ -208,15 +307,37 @@ Content-Type: application/json
 }
 ```
 
-### Log Habit For A Specific Date
-
-```http
-POST /habits/1/logs
-Content-Type: application/json
-```
+Response:
 
 ```json
 {
+  "id": 1,
+  "name": "Morning Workout",
+  "target_days_per_week": 5,
+  "user_id": 1,
+  "created_at": "2026-06-22T10:31:00+00:00"
+}
+```
+
+### Log Habit
+
+POST `/habits/1/logs`
+
+Request:
+
+```json
+{
+  "log_date": "2026-06-20",
+  "completed": true
+}
+```
+
+Response:
+
+```json
+{
+  "id": 1,
+  "habit_id": 1,
   "log_date": "2026-06-20",
   "completed": true
 }
@@ -226,10 +347,9 @@ If `log_date` is omitted, the API logs the habit for the current date.
 
 ### Edit Habit Log
 
-```http
-PUT /habits/1/logs/2026-06-20
-Content-Type: application/json
-```
+PUT `/habits/1/logs/2026-06-20`
+
+Request:
 
 ```json
 {
@@ -237,13 +357,22 @@ Content-Type: application/json
 }
 ```
 
-### Get Streak
+Response:
 
-```http
-GET /habits/1/streak
+```json
+{
+  "id": 1,
+  "habit_id": 1,
+  "log_date": "2026-06-20",
+  "completed": false
+}
 ```
 
-Sample response:
+### Get Streak
+
+GET `/habits/1/streak`
+
+Response:
 
 ```json
 {
@@ -255,11 +384,9 @@ Sample response:
 
 ### Get Dashboard
 
-```http
-GET /users/1/dashboard
-```
+GET `/users/1/dashboard`
 
-Sample response:
+Response:
 
 ```json
 {
@@ -277,31 +404,58 @@ Sample response:
 }
 ```
 
-## Validation And Error Cases
+### Error Response Examples
 
-- Duplicate user email returns `400`.
-- Invalid email returns `422`.
-- Non-existing user or habit returns `404`.
-- Duplicate habit log for the same date returns `400`.
-- Future date logging returns `400`.
-- Invalid date format for log update returns `400`.
+Duplicate email:
+
+```json
+{
+  "detail": "Email already registered"
+}
+```
+
+Duplicate habit log:
+
+```json
+{
+  "detail": "Habit already logged for this date"
+}
+```
+
+Future date log:
+
+```json
+{
+  "detail": "Cannot log habits for a future date"
+}
+```
+
+---
 
 ## Testing
 
-The automated tests cover:
+Run tests:
+
+```bash
+venv/bin/python -m pytest -q
+```
+
+The tests use an in-memory SQLite database so they do not modify the local PostgreSQL database.
+
+Test coverage includes:
 
 - User lifecycle
 - Habit lifecycle
 - Duplicate user validation
 - Duplicate habit log validation
-- Future-date log validation
+- Future date validation
 - Multi-day habit logging
 - Calendar gap streak reset
 - Dashboard response data
 
-## Postman Testing Checklist
+---
 
-Use the API docs or a Postman collection to test:
+## Postman Testing Checklist
 
 - Create user
 - Create habit
@@ -309,7 +463,7 @@ Use the API docs or a Postman collection to test:
 - Break a streak by skipping a date
 - Fetch streak
 - Fetch dashboard
-- Duplicate log negative case
-- Future date negative case
-- Non-existing user negative case
-- Invalid email negative case
+- Test duplicate log
+- Test future date log
+- Test non-existing user
+- Test invalid email
