@@ -1,0 +1,8 @@
+$kind: http-request
+name: "Negative Case: Duplicate Log"
+url: http://127.0.0.1:8000/habits/100/logs
+method: POST
+body:
+  type: json
+  content: ""
+order: 4028475364836841

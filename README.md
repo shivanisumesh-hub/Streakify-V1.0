@@ -457,6 +457,14 @@ Test coverage includes:
 
 ## Postman Testing Checklist
 
+Import this collection into Postman:
+
+```text
+postman/collections/Streakify.postman_collection.json
+```
+
+The collection uses `http://127.0.0.1:8000` as the default `baseUrl` and includes request tests plus collection variables for `userId`, `habitId`, and date-based streak scenarios.
+
 - Create user
 - Create habit
 - Log multiple days

@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://127.0.0.1:8000/habits/200/streak
+method: GET
+body:
+  type: json
+  content: |-
+    {
+      "name": "Faulty Email Profile",
+      "email": "corrupted-text-string"
+    }
+settings:
+  strictSSL: false
+  followRedirects: true
+  disableCookies: false
+  maxResponseSize: 52428800
+order: 3849972107778845
