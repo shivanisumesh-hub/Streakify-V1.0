@@ -1,0 +1,15 @@
+$kind: http-request
+name: consistency streak
+url: http://127.0.0.1:8000/users/1/dashboard
+method: GET
+body:
+  type: json
+  content: |-
+    {
+      "log_date": "2026-06-23",
+      "completed": false
+    }
+auth:
+  type: noauth
+examples: .resources/consistency streak.resources/examples
+order: 4502358634361809

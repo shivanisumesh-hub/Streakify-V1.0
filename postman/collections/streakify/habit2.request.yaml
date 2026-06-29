@@ -1,0 +1,15 @@
+$kind: http-request
+url: http://127.0.0.1:8000/habits
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "reading",
+      "target_days_per_week": 7,
+      "user_id": 1
+    }
+auth:
+  type: noauth
+examples: .resources/habit2.resources/examples
+order: 4503175192959711
