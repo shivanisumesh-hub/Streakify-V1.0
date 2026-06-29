@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/habits/1/logs/2026-06-20
+  method: PUT
+  body:
+    type: json
+    content: |-
+      {
+        "completed": false
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Mon, 29 Jun 2026 06:50:27 GMT
+    server: uvicorn
+    content-length: "63"
+    content-type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": 1,
+        "habit_id": 1,
+        "log_date": "2026-06-20",
+        "completed": false
+      }
+order: 1782715836849

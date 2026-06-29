@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://127.0.0.1:8000/habits
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "Morning Workout",
+      "target_days_per_week": 5,
+      "user_id": 1
+    }
+examples: .resources/new habit.resources/examples
+order: 4490888015972490

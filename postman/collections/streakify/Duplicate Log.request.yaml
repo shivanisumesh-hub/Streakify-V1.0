@@ -1,0 +1,13 @@
+$kind: http-request
+name: Duplicate Log
+url: http://127.0.0.1:8000/habits/1/logs
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "log_date": "2026-06-20",
+      "completed": true
+    }
+examples: .resources/Duplicate Log.resources/examples
+order: 4028475364836841

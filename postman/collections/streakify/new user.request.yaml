@@ -1,0 +1,12 @@
+$kind: http-request
+url: http://127.0.0.1:8000/users
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "Alice Smith",
+      "email": "alice@example.com"
+    }
+examples: .resources/new user.resources/examples
+order: 4435424265233206

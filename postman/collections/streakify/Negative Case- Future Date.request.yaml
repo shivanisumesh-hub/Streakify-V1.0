@@ -1,8 +1,0 @@
-$kind: http-request
-name: "Negative Case: Future Date"
-url: http://127.0.0.1:8000/habits/300/logs
-method: POST
-body:
-  type: json
-  content: ""
-order: 4435424265233206

@@ -1,0 +1,12 @@
+$kind: http-request
+name: edit habit log(false case)
+url: http://127.0.0.1:8000/habits/1/logs/2026-06-20
+method: PUT
+body:
+  type: json
+  content: |-
+    {
+      "completed": false
+    }
+examples: .resources/edit habit log(false case).resources/examples
+order: 4497479087532392

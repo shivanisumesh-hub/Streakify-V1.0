@@ -1,0 +1,13 @@
+$kind: http-request
+name: duplicate email
+url: http://127.0.0.1:8000/users
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "name": "duplicate mail",
+      "email": "alice@example.com"
+    }
+examples: .resources/duplicate email.resources/examples
+order: 1782368277543

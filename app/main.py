@@ -20,4 +20,4 @@ app.include_router(dashboards.router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the Streakify Habit Psychology Engine"}
+    return {"message": "Welcome to Streakify"}

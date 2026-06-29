@@ -1,0 +1,14 @@
+$kind: http-request
+name: dashboard
+url: http://127.0.0.1:8000/users/1/dashboard
+method: GET
+body:
+  type: json
+  content: |-
+    {
+      "name": "Meditation",
+      "target_days_per_week": 3,
+      "user_id": 1
+    }
+examples: .resources/dashboard.resources/examples
+order: 4501889402189779

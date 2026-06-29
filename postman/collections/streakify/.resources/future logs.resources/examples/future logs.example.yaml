@@ -1,0 +1,26 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/habits/1/logs
+  method: POST
+  body:
+    type: json
+    content: |-
+      {
+        "log_date": "2026-06-30",
+        "completed": true
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    date: Mon, 29 Jun 2026 07:01:22 GMT
+    server: uvicorn
+    content-length: "48"
+    content-type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "detail": "Cannot log habits for a future date"
+      }
+order: 1782716484221

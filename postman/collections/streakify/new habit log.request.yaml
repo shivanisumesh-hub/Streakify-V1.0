@@ -1,0 +1,13 @@
+$kind: http-request
+name: new habit log
+url: http://127.0.0.1:8000/habits/1/logs
+method: POST
+body:
+  type: json
+  content: |-
+    {
+      "log_date": "2026-06-20",
+      "completed": true
+    }
+examples: .resources/new habit log.resources/examples
+order: 4494973944364245

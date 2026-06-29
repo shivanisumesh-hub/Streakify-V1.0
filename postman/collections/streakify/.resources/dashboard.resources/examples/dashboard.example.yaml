@@ -1,0 +1,37 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/users/1/dashboard
+  method: GET
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Meditation",
+        "target_days_per_week": 3,
+        "user_id": 1
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Mon, 29 Jun 2026 06:53:07 GMT
+    server: uvicorn
+    content-length: "163"
+    content-type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "totalHabits": 1,
+        "activeHabits": 1,
+        "completedToday": 0,
+        "currentStreaks": [
+          {
+            "habitName": "Morning Workout",
+            "currentStreak": 0,
+            "longestStreak": 0
+          }
+        ],
+        "consistencyScore": 0
+      }
+order: 1782716101913

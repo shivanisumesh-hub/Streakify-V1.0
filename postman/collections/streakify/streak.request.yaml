@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://127.0.0.1:8000/habits/1/streak
+method: GET
+body:
+  type: json
+  content: |-
+    {
+      "habit_id": 1,
+      "current_streak": 2,
+      "max_streak": 5
+    }
+examples: .resources/streak.resources/examples
+order: 4501142518219447

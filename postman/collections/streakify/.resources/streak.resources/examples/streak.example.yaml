@@ -1,0 +1,29 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/habits/1/streak
+  method: GET
+  body:
+    type: json
+    content: |-
+      {
+        "habit_id": 1,
+        "current_streak": 2,
+        "max_streak": 5
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    date: Mon, 29 Jun 2026 06:52:38 GMT
+    server: uvicorn
+    content-length: "48"
+    content-type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "habit_id": 1,
+        "current_streak": 0,
+        "max_streak": 0
+      }
+order: 1782715961454
